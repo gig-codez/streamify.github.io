@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css"
+    />
+     <link rel="preconnect" href="https://fonts.gstatic.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+    --bs-font-sans-serif: "DM Sans", sans-serif;
+    }
+
+    @media (min-width: 576px) {
+    .card {
+      border: 0;
+      box-shadow: rgb(0 0 0 / 5%) 0px 10px 20px;
+      border-radius: 10px;
+    }
+
+    .card-img-top {
+      width: 100%;
+      height: 20vw;
+      object-fit: cover;
+    }
+    }
+  </style>
+
+  <title>Streamify</title>
+  </head>
+
+   <body>
+    <div class="container mt-2" style="max-width: 72em">
+
+         <nav class="navbar navbar-expand-lg navbar-light bg-dark rounded container-fluid">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample10" aria-controls="navbarsExample10" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="text-light">
+          <h3>Streamify</h3>
+        </div>
+
+        <div class="collapse navbar-collapse justify-content-md-center text-light" id="navbarsExample10">
+          <ul class="navbar-nav ">
+            <li class="nav-item active ">
+              <a class="nav-link text-light" id="homeVideos" href="#">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-light" id="myVideos" href="#">My videos</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-light" id="mySuggestions" href="#">Suggestions</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-light" id="homeVideos" id="patientButton" data-bs-toggle="modal" data-bs-target="#addModal">Upload</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-light" id="homeVideos" data-bs-toggle="modal" data-bs-target="#rentModal" href="#">Rent</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-light" id="homeVideos" data-bs-toggle="modal" data-bs-target="#recommendModal" href="#">Suggest</a>
+            </li>
+          </ul>
+        </div>
+        <span class="nav-link border rounded-pill bg-light justify-content-md-left">
+            <span id="balance">0</span>
+            cUSD
+          </span>
+      </nav>
+
+      <div class="alert alert-warning sticky-top mt-2" role="alert">
+        <span id="notification">⌛ Loading...</span>
+     </div>
+
+
+  <main id="marketplace" class="row"></main>
+</div>
+
+
+
+<!-- start of modal to save an upload-->
+    <div
+      class="modal fade "
+      id="addModal"
+      tabindex="-1"
+      aria-labelledby="newProductModalLabel1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="newProductModalLabel1">New Upload </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="form-row">
+                <div class="col">
+                  <input
+                    type="text"
+                    id="uploadTitle"
+                    class="form-control mb-2"
+                    placeholder="upload title"
+                  />
+                </div>
+
+                <div class="col">
+                  <input
+                    type="text"
+                    id="uploadUrl"
+                    class="form-control mb-2"
+                    placeholder="upload url"
+                  />
+                </div>
+
+                <div class="col">
+                  <input
+                    type="textarea"
+                    id="uploadDesc"
+                    class="form-control mb-2"
+                    placeholder="upload description"
+                  />
+                </div>
+
+                <div class="col">
+                  <input
+                    type="text"
+                    id="amountToRent"
+                    class="form-control mb-2"
+                    placeholder="price for renting"
+                  />
+                </div>
+            
+
+                <div class="col">
+                  <input
+                    type="text"
+                    id="amountToBuy"
+                    class="form-control mb-2"
+                    placeholder="price for buying"
+                  />
+                </div>
+
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-light border"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+            <button
+              type="button"
+              class="btn btn-success"
+              data-bs-dismiss="modal"
+              id="saveUpload"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+<!-- end of modal -->
+
+
+
+
+
+<!-- start of modal to to grant access to another user -->
+    <div
+      class="modal fade"
+      id="rentModal"
+      tabindex="-1"
+      aria-labelledby="newProductModalLabel1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="newProductModalLabel1">Rent 4 another </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="form-row">
+                <div class="col">
+                  <input
+                    type="text"
+                    id="rentAddress"
+                    class="form-control mb-2"
+                    placeholder="enter the recipient address"
+                  />
+                </div>
+
+                <div class="col">
+                  <input
+                    type="text"
+                    id="videoId"
+                    class="form-control mb-2"
+                    placeholder="enter video Id"
+                  />
+                </div>
+                
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-light border"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+            <button
+              type="button"
+              class="btn btn-success"
+              data-bs-dismiss="modal"
+              id="rentButton"
+            >
+              Grant Access
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+<!-- end of modal -->
+
+
+
+
+<!-- start of modal to to suggest  video to another user -->
+    <div
+      class="modal fade"
+      id="recommendModal"
+      tabindex="-1"
+      aria-labelledby="newProductModalLabel1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="newProductModalLabel1">Recommend A Video </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="form-row">
+                <div class="col">
+                  <input
+                    type="text"
+                    id="videoTitle"
+                    class="form-control mb-2"
+                    placeholder="enter video title"
+                  />
+                </div>
+
+                <div class="col">
+                  <input
+                    type="text"
+                    id="userAddress"
+                    class="form-control mb-2"
+                    placeholder="enter address of the user."
+                  />
+                </div>
+                
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-light border"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+            <button
+              type="button"
+              class="btn btn-success"
+              data-bs-dismiss="modal"
+              id="suggestButton"
+            >
+              Suggest
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+<!-- end of modal -->
+
+
+
+
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+   <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0"
+    crossorigin="anonymous"
+    ></script>
+    <script src="https://unpkg.com/ethereum-blockies@0.1.1/blockies.min.js"></script>
+  </body>
+</html>

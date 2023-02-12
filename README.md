@@ -1,5 +1,7 @@
 # Streamify
 
+## [Demo](https://gig-codez.github.io/streamify.github.io/)
+
 -A dapp on the Celo blockchain that allows users to stream videos.
 
 
@@ -20,9 +22,6 @@
 -Users can view  video suggestions from other users.
 
 
-### More functionality to be implemented.
-
-	* Disabling owners from deleting a video if one of the users is still renting it.
 
 
 

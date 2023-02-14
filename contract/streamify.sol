@@ -156,13 +156,19 @@ contract Pay2Watch {
     }
 
 
-    //Delete an video
-    function deleteUpload(uint _index) public {
+   function deleteUpload(uint _index) public {
+    require(msg.sender == uploads[_index].owner,"You are not authorized");
 
-        require(msg.sender == uploads[_index].owner,"You are not authorized");
-
-        delete uploads[_index];
+    // Remove the video from the isAllowed mapping for all users who were previously allowed to stream it
+    for (uint i = 0; i < uplaodLength; i++) {
+        if (isAllowed[uploads[_index].owner][i]) {
+            delete isAllowed[uploads[_index].owner][i];
+        }
     }
+
+    delete uploads[_index];
+}
+
 
 
     //Edit the price of rent or buy

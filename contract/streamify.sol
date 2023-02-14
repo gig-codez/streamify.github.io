@@ -23,17 +23,28 @@ interface IERC20Token {
 
 contract Pay2Watch {
 
-    //track all uploads on the smart contract
-    uint internal uplaodLength = 0;
+  //track all uploads on the smart contract
+  uint internal uploadLength;
 
   address internal cUsdTokenAddress = 0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1;
 
 
-    //event for a rent
-    event hasBeenRented(address owner, address recipient,uint uploadId, uint amount);
+  //struct for the videos
+  struct Upload{
+      address payable owner;
+      string title;
+      string content;
+      string description;
+      uint amountToRent;
+      uint amountToBuy;
+  }
 
-    //event for a buy
-    event hasBeenBought(address owner, address buyer,uint uploadId, uint amount);
+  //struct for suggested videos
+  struct suggestedVideos{
+    string VidTitle;
+    address recipient;
+    address suggestedBy;
+  }
 
 
     //mapping for the users
@@ -49,26 +60,25 @@ contract Pay2Watch {
 
 
 
-    //struct for the videos
-    struct Upload{
-        address payable owner;
-        string title;
-        string content;
-        string description;
-        uint amountToRent;
-        uint amountToBuy;
-    }
-
-    //struct for suggested videos
-    struct suggestedVideos{
-      string VidTitle;
-      address recipient;
-      address suggestedBy;
-    }
 
     //mapping for the suggested videos
     mapping(address => suggestedVideos[]) internal sugVideos;
 
+    //event for a rent
+    event hasBeenRented(address owner, address recipient,uint uploadId, uint amount);
+
+    //event for a buy
+    event hasBeenBought(address owner, address buyer,uint uploadId, uint amount);
+
+    modifier notOwner(uint _index) {
+      require(msg.sender != uploads[_index].owner,"Owner can't do this action");
+      _;
+    }
+
+    modifier onlyOwner(uint _index){
+      require(msg.sender == uploads[_index].owner,"Now owner");
+      _;
+    }
 
     //Ttore a video
     function storeUpload(
@@ -78,110 +88,75 @@ contract Pay2Watch {
         uint _amountToRent,
         uint _amountToBuy
         )
-        public{
+    public{
+      uploads[uploadLength] = Upload(
+        payable(msg.sender),
+        _title,
+        __content,
+        _description,
+        _amountToRent,
+        _amountToBuy
+      );
 
-            uploads[uplaodLength] = Upload(
-
-                payable(msg.sender),
-                _title,
-                __content,
-                _description,
-                _amountToRent,
-                _amountToBuy
-                );
-
-            uplaodLength++;
+      uploadLength++;
     }
 
-
-
     //Rent an a video
-    function rentOut(uint _index) public  {
+    function rentOut(uint _index) public  notOwner(_index){
+      require(
+        IERC20Token(cUsdTokenAddress).transferFrom(
+          msg.sender,
+          uploads[_index].owner,
+          uploads[_index].amountToRent 
+        ),
+        "Renting out failed."
+      );
 
-        require(msg.sender != uploads[_index].owner,"You cant rent your own content");
-        require(
-          IERC20Token(cUsdTokenAddress).transferFrom(
-            msg.sender,
-            uploads[_index].owner,
-            uploads[_index].amountToRent 
-          ),
-          "Renting out failed."
-        );
+      isAllowed[msg.sender][_index] = true;
 
-        isAllowed[msg.sender][_index] = true;
-
-        emit hasBeenRented(uploads[_index].owner, msg.sender,_index, uploads[_index].amountToRent);
+      emit hasBeenRented(uploads[_index].owner, msg.sender,_index, uploads[_index].amountToRent);
     }
 
 
     //Buy a video
-    function buyOut(uint _index) public  {
+    function buyOut(uint _index) public  notOwner(_index){
+      require(
+        IERC20Token(cUsdTokenAddress).transferFrom(
+          msg.sender,
+          uploads[_index].owner,
+          uploads[_index].amountToBuy 
+        ),
+        "Buying out failed."
+      );
 
+      uploads[_index].owner = payable(msg.sender);
 
-        require(msg.sender != uploads[_index].owner,"You cant buy your own content");
-        require(
-          IERC20Token(cUsdTokenAddress).transferFrom(
-            msg.sender,
-            uploads[_index].owner,
-            uploads[_index].amountToBuy 
-          ),
-          "Buying out failed."
-        );
+      isAllowed[msg.sender][_index] = true;
 
-        uploads[_index].owner = payable(msg.sender);
-
-        isAllowed[msg.sender][_index] = true;
-
-        emit hasBeenBought(uploads[_index].owner, msg.sender,_index, uploads[_index].amountToRent);
+      emit hasBeenBought(uploads[_index].owner, msg.sender,_index, uploads[_index].amountToRent);
     }
-
-
-    //Check if one is allowed to watch a certain video 
-    function isAllowedToStream(uint _index) public view returns(bool){
-        return isAllowed[msg.sender][_index];
-    }
-
-
-
-    //Get a video with a specific id
-    function getSpecificUpload(uint _index) public view returns(Upload memory){
-        return uploads[_index];
-    }
-
-
-
-    //Get the total number of video so far
-    function getTotaluploads() public view returns(uint){
-        return uplaodLength;
-    }
-
 
     //Delete an video
-    function deleteUpload(uint _index) public {
-
-        require(msg.sender == uploads[_index].owner,"You are not authorized");
-
-        delete uploads[_index];
+    function deleteUpload(uint _index) public onlyOwner(_index){
+      delete uploads[_index];
     }
 
 
     //Edit the price of rent or buy
-    function adjustPrice(uint _index, string memory _category, uint _amount) public {
+    function adjustPrice(uint _index, string memory _category, uint _amount) public onlyOwner(_index){
 
-        require(msg.sender == uploads[_index].owner,"You are not authorized");
+      if (keccak256(abi.encodePacked('rent')) == keccak256(abi.encodePacked(_category))) {
+        uploads[_index].amountToRent = _amount;
 
-        if (keccak256(abi.encodePacked('rent')) == keccak256(abi.encodePacked(_category))) {
-            uploads[_index].amountToRent = _amount;
-   
-       }else if (keccak256(abi.encodePacked('buy')) == keccak256(abi.encodePacked(_category))) {
+      }
+      else if (keccak256(abi.encodePacked('buy')) == keccak256(abi.encodePacked(_category))) {
         uploads[_index].amountToBuy = _amount;
-
-     }
+      }
 
     }
 
      //Allow someone else to watch your video (in rent mode)
-     function rent4Me(uint _index, address _recipient) public {
+     function rent4Me(uint _index, address _recipient) public onlyOwner(_index){
        require(uploads[_index].owner == msg.sender,"you dont own this video");
        isAllowed[_recipient][_index] = true;
      }
@@ -196,10 +171,23 @@ contract Pay2Watch {
        ));
      }
 
-     //return suggested videos
+    //Check if one is allowed to watch a certain video 
+    function isAllowedToStream(uint _index) public view returns(bool){
+        return isAllowed[msg.sender][_index];
+    }
+
+    //Get a video with a specific id
+    function getSpecificUpload(uint _index) public view returns(Upload memory){
+        return uploads[_index];
+    }
+
+    //Get the total number of video so far
+    function getTotaluploads() public view returns(uint){
+        return uploadLength;
+    }
+
+  //return suggested videos
   function getSuggestedVideos() public view returns(suggestedVideos[] memory){
     return sugVideos[msg.sender];
   }
-
-
-    }
+}

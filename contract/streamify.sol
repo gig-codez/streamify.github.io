@@ -77,63 +77,71 @@ contract Pay2Watch {
         string memory _description,
         uint _amountToRent,
         uint _amountToBuy
-        )
-        public{
+            ) public {
+        require(bytes(_title).length > 0 && bytes(_title).length <= 50, "Title must be between 1 and 50 characters");
+        require(bytes(__content).length > 0 && bytes(__content).length <= 1000, "Content must be between 1 and 1000 characters");
+        require(bytes(_description).length > 0 && bytes(_description).length <= 500, "Description must be between 1 and 500 characters");
+        require(_amountToRent >= 0, "Amount to rent must be non-negative");
+        require(_amountToBuy >= 0, "Amount to buy must be non-negative");
 
-            uploads[uplaodLength] = Upload(
+    uploads[uplaodLength] = Upload(
+            payable(msg.sender),
+            _title,
+            __content,
+            _description,
+            _amountToRent,
+            _amountToBuy
+    );
 
-                payable(msg.sender),
-                _title,
-                __content,
-                _description,
-                _amountToRent,
-                _amountToBuy
-                );
+    uplaodLength++;
+}
 
-            uplaodLength++;
-    }
 
 
 
     //Rent an a video
-    function rentOut(uint _index) public  {
-
-        require(msg.sender != uploads[_index].owner,"You cant rent your own content");
-        require(
-          IERC20Token(cUsdTokenAddress).transferFrom(
+    function rentOut(uint _index) public {
+    require(_index < uplaodLength, "Invalid upload index provided");
+    require(address(0) != uploads[_index].owner, "The requested upload does not exist or has been deleted");
+    require(msg.sender != uploads[_index].owner,"You cant rent your own content");
+    require(!isAllowed[msg.sender][_index], "You already have access to this video.");
+    require(
+        IERC20Token(cUsdTokenAddress).transferFrom(
             msg.sender,
             uploads[_index].owner,
             uploads[_index].amountToRent 
-          ),
-          "Renting out failed."
-        );
+        ),
+        "Renting out failed."
+    );
+    isAllowed[msg.sender][_index] = true;
+    emit hasBeenRented(uploads[_index].owner, msg.sender, _index, uploads[_index].amountToRent);
+}
 
-        isAllowed[msg.sender][_index] = true;
-
-        emit hasBeenRented(uploads[_index].owner, msg.sender,_index, uploads[_index].amountToRent);
-    }
 
 
     //Buy a video
-    function buyOut(uint _index) public  {
-
-
-        require(msg.sender != uploads[_index].owner,"You cant buy your own content");
-        require(
-          IERC20Token(cUsdTokenAddress).transferFrom(
+   function buyOut(uint _index) public {
+    require(_index < uplaodLength, "Invalid upload index provided");
+    require(address(0) != uploads[_index].owner, "The requested upload does not exist or has been deleted");
+    require(msg.sender != uploads[_index].owner,"You cant buy your own content");
+    require(!isAllowed[msg.sender][_index], "You already have access to this video.");
+    require(
+        IERC20Token(cUsdTokenAddress).transferFrom(
             msg.sender,
             uploads[_index].owner,
             uploads[_index].amountToBuy 
-          ),
-          "Buying out failed."
-        );
+        ),
+        "Buying out failed."
+    );
+    uploads[_index].owner = payable(msg.sender);
+    isAllowed[msg.sender][_index] = true;
+    emit hasBeenBought(uploads[_index].owner, msg.sender, _index, uploads[_index].amountToRent);
+}
 
-        uploads[_index].owner = payable(msg.sender);
 
-        isAllowed[msg.sender][_index] = true;
 
-        emit hasBeenBought(uploads[_index].owner, msg.sender,_index, uploads[_index].amountToRent);
-    }
+
+
 
 
     //Check if one is allowed to watch a certain video 
